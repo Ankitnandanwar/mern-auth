@@ -3,11 +3,20 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
+import cors from 'cors'
 
+// Handling cors policy issue
+const corsOptions = {
+    origin: "http://localhost:5173",
+    methods: "GET, POST, PUT, DELETE, PATCH, HEAD",
+    credentials: true,
+}
 
 dotenv.config()
 const app = express();
 app.use(express.json());
+app.use(cors(corsOptions))
+
 
 mongoose.connect(process.env.MONGODBURL)
     .then(() => {
