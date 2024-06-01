@@ -1,4 +1,5 @@
 import {createSlice} from '@reduxjs/toolkit'
+import { updateCurrentUser } from 'firebase/auth';
 
 const initialState = {
     currentUser: null,
@@ -23,9 +24,24 @@ const userSlice = createSlice({
         signInFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload; 
+        },
+
+        updateUserStart: (state) => {
+            state.loading = true;
+        },
+
+        updateUserSuccess: (state, action) => {
+            state.loading = false;
+            state.currentUser = action.payload;
+            state.error = false
+        },
+
+        updateUserFaliure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
         }
     }
 })
 
-export const {signInStart, signInSuccess, signInFailure} = userSlice.actions
+export const {signInStart, signInSuccess, signInFailure, updateUserStart, updateUserSuccess, updateUserFaliure} = userSlice.actions
 export default userSlice.reducer;

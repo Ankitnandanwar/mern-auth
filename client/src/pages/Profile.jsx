@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux'
 import { useRef, useState, useEffect } from 'react'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
 import { app } from '../firebase'
+import { useDispatch } from 'react-redux'
+import { updateUserStart, updateUserSuccess, updateUserFaliure } from '../redux/user/userSlice'
 
 const Profile = () => {
 
@@ -13,7 +15,7 @@ const Profile = () => {
   const [imageError, setImageError] = useState(false)
   const [formData, setFormData] = useState({})
 
-
+  const dispatch = useDispatch()
   // console.log(imagePercent)
 
   useEffect(() => {
@@ -45,10 +47,37 @@ const Profile = () => {
     )
   }
 
+  const handleChange = (e) => {
+    setFormData({...formData, [e.target.id]: e.target.value});
+  }
+
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+    try {
+      dispatch(updateUserStart())
+      const res = await fetch(`http://localhost:8500/user/update/${currentUser._id}`,{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData),
+      })
+      const data = await res.json();
+      if(data.success === false){
+        dispatch(updateUserFaliure(data))
+        return;
+      }
+      dispatch(updateUserSuccess(data))
+    } catch (error) {
+      dispatch(updateUserFaliure(error))
+    }
+  }
+
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>Profile</h1>
-      <form className='flex flex-col gap-4'>
+      <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         <input type="file" ref={fileRef} hidden accept='image/*' onChange={(e) => setImage(e.target.files[0])} />
         <img src={formData.profilePicture ||  currentUser.profilePicture} alt="profile"
           className='h-24 w-24 rounded-full object-cover self-center cursor-pointer mt-2'
@@ -65,9 +94,9 @@ const Profile = () => {
             ) : ''
           }
         </p>
-        <input defaultValue={currentUser.username} type="text" id="username" placeholder='Username' className='bg-slate-100 p-3 rounded-lg' />
-        <input defaultValue={currentUser.email} type="email" id="email" placeholder='Email' className='bg-slate-100 p-3 rounded-lg' />
-        <input type="password" id="password" placeholder='Password' className='bg-slate-100 p-3 rounded-lg' />
+        <input defaultValue={currentUser.username} type="text" id="username" onChange={handleChange} placeholder='Username' className='bg-slate-100 p-3 rounded-lg' />
+        <input defaultValue={currentUser.email} type="email" id="email" onChange={handleChange} placeholder='Email' className='bg-slate-100 p-3 rounded-lg' />
+        <input type="password" id="password" placeholder='Password' onChange={handleChange} className='bg-slate-100 p-3 rounded-lg' />
         <button className='bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80'>Update</button>
       </form>
       <div className='flex justify-between mt-5'>
